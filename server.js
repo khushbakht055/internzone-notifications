@@ -9,17 +9,21 @@ app.use(express.json());
 
 // Initialize Firebase Admin
 let serviceAccount;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
-  const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
-  serviceAccount = JSON.parse(decoded);
-} else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
+// Try environment variable (for DigitalOcean deployment)
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } catch (e) {
+    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e.message);
+    process.exit(1);
+  }
 } else {
   // Load from file for local development
   try {
     serviceAccount = require('./serviceAccountKey.json');
   } catch (e) {
-    console.error('No Firebase service account found!');
+    console.error('No Firebase service account found! Set FIREBASE_SERVICE_ACCOUNT env var or add serviceAccountKey.json');
     process.exit(1);
   }
 }
